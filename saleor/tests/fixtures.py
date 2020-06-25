@@ -43,6 +43,7 @@ from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation
 from ..payment import ChargeStatus, TransactionKind
+from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
@@ -1469,6 +1470,28 @@ def payment_not_authorized(payment_dummy):
     payment_dummy.is_active = False
     payment_dummy.save()
     return payment_dummy
+
+
+@pytest.fixture
+def dummy_gateway_config():
+    return GatewayConfig(
+        gateway_name="Dummy",
+        auto_capture=True,
+        connection_params={"secret-key": "nobodylikesspanishinqusition"},
+    )
+
+
+@pytest.fixture
+def dummy_payment_data():
+    return PaymentData(
+        amount=10,
+        currency="USD",
+        billing=None,
+        shipping=None,
+        order_id=None,
+        customer_ip_address=None,
+        customer_email="example@test.com",
+    )
 
 
 @pytest.fixture

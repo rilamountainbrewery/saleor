@@ -6,7 +6,7 @@ import pytest
 from ...checkout.calculations import checkout_total
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
-from ..interface import CreditCardInfo, GatewayConfig, GatewayResponse
+from ..interface import CreditCardInfo, GatewayResponse
 from ..models import Payment
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -57,15 +57,6 @@ def transaction_data(payment_dummy, gateway_response):
         "kind": TransactionKind.CAPTURE,
         "gateway_response": gateway_response,
     }
-
-
-@pytest.fixture
-def gateway_config():
-    return GatewayConfig(
-        gateway_name="Dummy",
-        auto_capture=True,
-        connection_params={"secret-key": "nobodylikesspanishinqusition"},
-    )
 
 
 @pytest.fixture
