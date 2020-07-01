@@ -17,6 +17,10 @@ from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from corsheaders.defaults import default_headers
+
+
+import psycopg2
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]
@@ -62,10 +66,36 @@ ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
-    )
+
+if os.getenv('GAE_APPLICATION', None):
+    # Running on production App Engine, so connect to Google Cloud SQL using
+    # the unix socket at /cloudsql/<your-cloudsql-connection string>
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("SALEOR_DB_NAME"),
+            'USER': os.environ.get("SALEOR_DB_USER"),
+            'PASSWORD': os.environ.get("SALEOR_DB_PASSWORD"),
+            'HOST': os.environ.get("SALEOR_DB_HOST"),
+            'PORT': os.environ.get("SALEOR_DB_PORT")
+        }
+    }
+else:
+    # Running locally so connect to either a local PostgreSQL instance or connect to
+    # Cloud SQL via the proxy. To start the proxy via command line:
+    #
+    #     $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306
+    #
+    # See https://cloud.google.com/sql/docs/mysql-connect-proxy
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("SALEOR_DB_NAME"),
+            'USER': os.environ.get("SALEOR_DB_USER"),
+            'PASSWORD': os.environ.get("SALEOR_DB_PASSWORD"),
+            'HOST': os.environ.get("SALEOR_DB_HOST"),
+            'PORT': os.environ.get("SALEOR_DB_PORT")
+        }
 }
 
 
@@ -205,6 +235,7 @@ if not SECRET_KEY and DEBUG:
     SECRET_KEY = get_random_secret_key()
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.request_time",
@@ -217,7 +248,27 @@ MIDDLEWARE = [
     "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
+# Cors headers added due to appengine issues
+CORS_ORIGIN_ALLOW_ALL = False
+#CORS_ALLOW_CREDENTIALS = True
+
+# Cors headers added due to appengine issues
+CORS_ORIGIN_WHITELIST = [
+    'localhost:80',
+    'localhost:8000',
+    '127.0.0.1:8000',
+    'https://rila-dev-281513.ew.r.appspot.com',
+    'https://saleor-backend-dot-rila-dev-281513.ew.r.appspot.com'
+]
+
+# Cors headers added due to appengine issues
+CORS_ALLOW_HEADERS = default_headers + (
+    'Access-Control-Allow-Origin',
+)
+
+
 INSTALLED_APPS = [
+    "corsheaders",
     # External apps that need to go before django's
     "storages",
     # Django modules
@@ -261,8 +312,8 @@ INSTALLED_APPS = [
     "phonenumber_field",
 ]
 
-
-ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
+# This was False
+ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", True)
 if ENABLE_DEBUG_TOOLBAR:
     # Ensure the graphiql debug toolbar is actually installed before adding it
     try:
@@ -411,7 +462,7 @@ AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_STORAGE_BUCKET_NAME = os.environ.get("GS_STORAGE_BUCKET_NAME")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
-GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
+GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", True)
 
 # If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
@@ -561,7 +612,7 @@ if "JAEGER_AGENT_HOST" in os.environ:
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+    CACHE_URL = os.environ.setdefault("REDISHOST", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
 
 # Default False because storefront and dashboard don't support expiration of token

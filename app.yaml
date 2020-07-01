@@ -1,0 +1,76 @@
+# [START django_app]
+
+runtime: custom
+env: flex
+service: saleor-backend
+
+beta_settings:
+  cloud_sql_instances: shared-service-263517:europe-west1:saleor-dev=tcp:5432
+
+automatic_scaling:
+  min_idle_instances: automatic
+  max_idle_instances: automatic
+  min_pending_latency: automatic
+  max_pending_latency: automatic
+
+# Update with Redis instance IP and port
+env_variables:
+  REDISHOST: 10.181.50.179
+  REDISPORT: 6379
+  REDIS_URL: redis://REDISHOST:REDISPORT
+  REDIS_PROVIDER: REDIS_URL
+  SECRET_KEY_BASE: o16m9XoC4hQ4Hd9EFGUh98lXAsW4CaH7gxGitDXrkONcmu3xVT57AsH4Qr4dD4ejjXt7oV1bQU9DVoFYoKbS53ja3binTH4mNXV
+  SECRET_KEY: dWgb0F62vZPKj2UUplXMnDJ1Yf1f5NfjJrZK5sYIo5YDBOEJyNLjT9TRrb4KQIgde82mm6pBI7fE1aqJE8ZtFdZy2wBWqdvbf0O
+
+  CLOUDAMQP_URL: 'amqp://zusxrltc:HJ7oihFPrrAOw1k2QBnZN49UjG7A3luS@kangaroo.rmq.cloudamqp.com/zusxrltc'
+  CELERY_RESULT_BACKEND: None
+
+  #JAEGER_AGENT_HOST:
+  #JAEGER_AGENT_PORT:
+
+
+#  GOOGLE_APPLICATION_CREDENTIALS:
+#  GS_PROJECT_ID:
+#  GS_CREDENTIALS:
+  GS_STORAGE_BUCKET_NAME: rila-dev-281513.appspot.com
+  GS_MEDIA_BUCKET_NAME: rila-dev-281513.appspot.com
+#  GS_AUTO_CREATE_BUCKET:
+
+  SALEOR_DB_USER: saleor-dev
+  SALEOR_DB_PASSWORD: Ey8NF46YWx34&o%F$GRN
+  SALEOR_DB_NAME: saleor-dev
+#  SALEOR_DB_HOST: '/cloudsql/shared-service-263517:europe-west1:saleor-dev'
+  SALEOR_DB_HOST: '34.78.62.115'
+  SALEOR_DB_PORT: '5432'
+
+#  EMAIL_URL:
+#  SENDGRID_USERNAME:
+#  SENDGRID_PASSWORD:
+#  DEFAULT_FROM_EMAIL:
+#
+  MEDIA_URL: https://storage.cloud.google.com/rila-dev-281513.appspot.com/media/
+  #STATIC_URL:
+
+#  DEFAULT_COUNTRY:
+#  DEFAULT_CURRENCY:
+#  OPENEXCHANGERATES_API_KEY:
+
+#  GOOGLE_ANALYTICS_TRACKING_ID:
+#  MAX_CHECKOUT_LINE_QUANTITY:
+  #ALLOWED_HOSTS: "localhost,127.0.0.1,saleor-backend-dot-rila-dev-281513.ew.r.appspot.com"
+  ALLOWED_HOSTS: "localhost,127.0.0.1,rila-dev-281513.ew.r.appspot.com,saleor-backend-dot-rila-dev-281513.ew.r.appspot.com,51.148.136.56"
+  ALLOWED_GRAPHQL_ORIGINS: "https://rila-dev-281513.ew.r.appspot.com,https://saleor-backend-dot-rila-dev-281513.ew.r.appspot.com,51.148.136.56"
+
+
+handlers:
+# This configures Google App Engine to serve the files in the app's static
+# directory.
+- url: /static
+  static_dir: static/
+
+# This handler routes all requests not caught above to your main app. It is
+# required when static routes are defined, but can be omitted (along with
+# the entire handlers section) when there are no static files defined.
+- url: .*
+  script: auto
+# [END django_app]

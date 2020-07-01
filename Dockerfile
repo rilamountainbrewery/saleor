@@ -10,7 +10,7 @@ RUN apt-get -y update \
 # Install Python dependencies
 COPY requirements_dev.txt /app/
 WORKDIR /app
-RUN pip install -r requirements_dev.txt
+RUN pip3 install -r requirements_dev.txt
 
 ### Final image
 FROM python:3.8-slim
@@ -30,18 +30,24 @@ RUN apt-get update \
     libgdk-pixbuf2.0-0 \
     shared-mime-info \
     mime-support \
+    libmagic-dev \
+    python-django-cors-headers \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install django-cors-headers
 
 COPY . /app
 COPY --from=build-python /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 WORKDIR /app
 
-RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
-
-RUN mkdir -p /app/media /app/static \
+RUN mkdir -p /app/media /app/static /app/saleor /app/saleor/static/images \
   && chown -R saleor:saleor /app/
+
+# RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
+RUN SECRET_KEY=dWgb0F62vZPKj2UUplXMnDJ1Yf1f5NfjJrZK5sYIo5YDBOEJyNLjT9TRrb4KQIgde82mm6pBI7fE1aqJE8ZtFdZy2wBWqdvbf0O STATIC_URL='/static/' python3 manage.py collectstatic --no-input
+
 
 EXPOSE 8000
 ENV PORT 8000

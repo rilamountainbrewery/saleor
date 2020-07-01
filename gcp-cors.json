@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CorsConfig>
+  <Cors>
+    <Origins>
+      <Origin>https://rila-dev-281513.ew.r.appspot.com</Origin>
+      <Origin>https://saleor-backend-dot-rila-dev-281513.ew.r.appspot.com</Origin>
+    </Origins>
+    <Methods>
+      <Method>GET</Method>
+      <Method>HEAD</Method>
+    </Methods>
+    <ResponseHeaders>
+      <ResponseHeader>Content-Type</ResponseHeader>
+    </ResponseHeaders>
+    <MaxAgeSec>3600</MaxAgeSec>
+  </Cors>
+</CorsConfig>
